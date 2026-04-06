@@ -10,7 +10,12 @@ import { AddFriendDialog } from '@/components/add-friend-dialog';
 import { CategoryBadge } from '@/components/category-badge';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Plus, MapPin, Phone, Mail, Users, BookUser, Loader2, Upload } from 'lucide-react';
+import { Search, Plus, MapPin, Phone, Mail, Users, BookUser, Loader2, Upload, Trash2, X, Smartphone } from 'lucide-react';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const AVATAR_COLORS = [
   '#7c5cbf', '#d97bb6', '#e07c7c', '#e09a5a', '#5ca87c', '#5c90bf',
@@ -61,6 +66,17 @@ export default function FriendsList() {
   const [addOpen, setAddOpen] = useState(false);
   const [importing, setImporting] = useState(false);
   const [vcfImporting, setVcfImporting] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [confirmDeleteName, setConfirmDeleteName] = useState('');
+  const [showInstallBanner, setShowInstallBanner] = useState(() => {
+    try {
+      const isStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as any).standalone === true;
+      const dismissed = localStorage.getItem('orbit-install-dismissed') === '1';
+      return !isStandalone && !dismissed;
+    } catch { return false; }
+  });
   const { toast } = useToast();
   const qc = useQueryClient();
 
@@ -109,6 +125,16 @@ export default function FriendsList() {
 
   const { data: friends = [], isLoading } = useQuery<FriendWithLast[]>({
     queryKey: ['/api/friends'],
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => apiRequest('DELETE', `/api/friends/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['/api/friends'] });
+      qc.invalidateQueries({ queryKey: ['/api/stats'] });
+      toast({ title: `${confirmDeleteName} removed from orbit` });
+      setConfirmDeleteId(null);
+    },
   });
 
   const addMutation = useMutation({
@@ -294,11 +320,27 @@ export default function FriendsList() {
         />
       </div>
 
-      {/* Mobile import hint (when Contact Picker is not available) */}
-      {!contactPickerSupported && (
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 text-muted-foreground text-xs">
-          <BookUser className="w-4 h-4 flex-shrink-0" />
-          <span>Open Orbit on your phone to bulk-import from your contacts in one tap.</span>
+      {/* PWA install banner — shown until dismissed or already installed */}
+      {showInstallBanner && (
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-primary/10 border border-primary/25">
+          <Smartphone className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-primary">Add Orbit to your Home Screen</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              In Safari tap <strong>Share ↑</strong> → <strong>Add to Home Screen</strong>. Once installed, open
+              Contacts, tap any contact → Share → Orbit to import instantly.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              localStorage.setItem('orbit-install-dismissed', '1');
+              setShowInstallBanner(false);
+            }}
+            className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+            aria-label="Dismiss"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -375,6 +417,20 @@ export default function FriendsList() {
                           <p className="text-xs text-muted-foreground truncate">"{f.nickname}"</p>
                         )}
                       </div>
+                      {/* Quick-delete button */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setConfirmDeleteName(f.name);
+                          setConfirmDeleteId(f.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 text-muted-foreground hover:text-destructive transition-all flex-shrink-0 p-1 rounded"
+                        aria-label={`Remove ${f.name}`}
+                        data-testid={`button-quick-delete-${f.id}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
 
                     <div className="space-y-1 text-xs text-muted-foreground mb-3">
@@ -421,6 +477,27 @@ export default function FriendsList() {
       )}
 
       <AddFriendDialog open={addOpen} onOpenChange={setAddOpen} />
+
+      {/* Delete confirmation */}
+      <AlertDialog open={confirmDeleteId !== null} onOpenChange={(open) => { if (!open) setConfirmDeleteId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove {confirmDeleteName}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will delete {confirmDeleteName} and all their interaction history. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => confirmDeleteId !== null && deleteMutation.mutate(confirmDeleteId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

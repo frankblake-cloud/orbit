@@ -166,7 +166,13 @@ export default function FriendDetail() {
           <Button size="icon" variant="outline" onClick={() => setEditOpen(true)} data-testid="button-edit-friend">
             <Edit className="w-4 h-4" />
           </Button>
-          <Button size="icon" variant="outline" onClick={() => setDeleteOpen(true)} data-testid="button-delete-friend">
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={() => setDeleteOpen(true)}
+            className="text-destructive border-destructive/40 hover:bg-destructive hover:text-white"
+            data-testid="button-delete-friend"
+          >
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
@@ -304,6 +310,19 @@ export default function FriendDetail() {
           )}
         </CardContent>
       </Card>
+
+      {/* Remove from Orbit CTA */}
+      <div className="pt-2">
+        <Button
+          variant="outline"
+          className="w-full text-destructive border-destructive/40 hover:bg-destructive hover:text-white"
+          onClick={() => setDeleteOpen(true)}
+          data-testid="button-remove-friend-bottom"
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+          Remove {friend.name} from Orbit
+        </Button>
+      </div>
 
       {/* Dialogs */}
       <LogInteractionDialog
