@@ -70,11 +70,10 @@ export default function FriendsList() {
   const [confirmDeleteName, setConfirmDeleteName] = useState('');
   const [showInstallBanner, setShowInstallBanner] = useState(() => {
     try {
-      const isStandalone =
+      return !(
         window.matchMedia('(display-mode: standalone)').matches ||
-        (window.navigator as any).standalone === true;
-      const dismissed = localStorage.getItem('orbit-install-dismissed') === '1';
-      return !isStandalone && !dismissed;
+        (window.navigator as any).standalone === true
+      );
     } catch { return false; }
   });
   const { toast } = useToast();
@@ -332,10 +331,7 @@ export default function FriendsList() {
             </p>
           </div>
           <button
-            onClick={() => {
-              localStorage.setItem('orbit-install-dismissed', '1');
-              setShowInstallBanner(false);
-            }}
+            onClick={() => setShowInstallBanner(false)}
             className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
             aria-label="Dismiss"
           >
