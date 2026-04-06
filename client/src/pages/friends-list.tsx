@@ -10,7 +10,7 @@ import { AddFriendDialog } from '@/components/add-friend-dialog';
 import { CategoryBadge } from '@/components/category-badge';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Plus, MapPin, Phone, Mail, Users, BookUser, Loader2 } from 'lucide-react';
+import { Search, Plus, MapPin, Phone, Mail, Users, BookUser, Loader2, Upload } from 'lucide-react';
 
 const AVATAR_COLORS = [
   '#7c5cbf', '#d97bb6', '#e07c7c', '#e09a5a', '#5ca87c', '#5c90bf',
@@ -60,6 +60,7 @@ export default function FriendsList() {
   const [search, setSearch] = useState('');
   const [addOpen, setAddOpen] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [vcfImporting, setVcfImporting] = useState(false);
   const { toast } = useToast();
   const qc = useQueryClient();
 
@@ -74,6 +75,61 @@ export default function FriendsList() {
       qc.invalidateQueries({ queryKey: ['/api/stats'] });
     },
   });
+
+  // Parse a vCard (.vcf) file and bulk-import contacts
+  async function importVcf(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    setVcfImporting(true);
+    try {
+      const text = await file.text();
+      // Split into individual vCards
+      const cards = text.split(/END:VCARD/i).map(s => s.trim()).filter(Boolean);
+      let added = 0, skipped = 0;
+      for (const card of cards) {
+        const getName = (block: string) => {
+          const fn = block.match(/^FN[^:]*:(.+)$/im)?.[1]?.trim();
+          if (fn) return fn;
+          // fallback: N field → Last;First;Middle
+          const n = block.match(/^N[^:]*:(.+)$/im)?.[1]?.trim();
+          if (n) {
+            const parts = n.split(';').map(p => p.trim()).filter(Boolean);
+            return [parts[1], parts[0]].filter(Boolean).join(' ');
+          }
+          return '';
+        };
+        const name = getName(card);
+        if (!name) { skipped++; continue; }
+
+        const telMatch = card.match(/^TEL[^:]*:(.+)$/im);
+        const emailMatch = card.match(/^EMAIL[^:]*:(.+)$/im);
+        const phone = telMatch?.[1]?.trim() ?? null;
+        const email = emailMatch?.[1]?.trim() ?? null;
+
+        const colorIdx = name.charCodeAt(0) % AVATAR_COLORS.length;
+        await addMutation.mutateAsync({
+          name,
+          phone: phone || null,
+          email: email || null,
+          avatarColor: AVATAR_COLORS[colorIdx],
+          tags: '[]',
+        });
+        added++;
+      }
+      qc.invalidateQueries({ queryKey: ['/api/friends'] });
+      qc.invalidateQueries({ queryKey: ['/api/stats'] });
+      if (added > 0) {
+        toast({ title: `${added} friend${added > 1 ? 's' : ''} imported from vCard!`, description: skipped > 0 ? `${skipped} skipped (no name).` : undefined });
+      } else {
+        toast({ title: 'No contacts found in file.', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Could not read file', variant: 'destructive' });
+    } finally {
+      setVcfImporting(false);
+    }
+  }
 
   async function bulkImportFromContacts() {
     if (!contactPickerSupported) return;
@@ -149,6 +205,17 @@ export default function FriendsList() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {/* vCard import — works on all devices */}
+          <label>
+            <input type="file" accept=".vcf,text/vcard" className="hidden" onChange={importVcf} disabled={vcfImporting} />
+            <Button variant="outline" size="sm" asChild disabled={vcfImporting}>
+              <span className="cursor-pointer">
+                {vcfImporting ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Upload className="w-4 h-4 mr-1.5" />}
+                {vcfImporting ? 'Importing...' : 'Import vCard'}
+              </span>
+            </Button>
+          </label>
+          {/* Native contact picker — Android Chrome only */}
           {contactPickerSupported && (
             <Button
               variant="outline"
