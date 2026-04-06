@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'wouter';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -63,6 +63,49 @@ export default function FriendsList() {
   const [vcfImporting, setVcfImporting] = useState(false);
   const { toast } = useToast();
   const qc = useQueryClient();
+
+  // Check for a contact shared via the PWA share target
+  useEffect(() => {
+    async function checkPendingShare() {
+      if (!('caches' in window)) return;
+      try {
+        const cache = await caches.open('orbit-share-v1');
+        const response = await cache.match('/pending-contact');
+        if (!response) return;
+        const text = await response.text();
+        await cache.delete('/pending-contact');
+        if (!text.trim()) return;
+
+        // Parse the vCard and add the friend
+        const getName = (block: string) => {
+          const fn = block.match(/^FN[^:]*:(.+)$/im)?.[1]?.trim();
+          if (fn) return fn;
+          const n = block.match(/^N[^:]*:(.+)$/im)?.[1]?.trim();
+          if (n) {
+            const parts = n.split(';').map((p: string) => p.trim()).filter(Boolean);
+            return [parts[1], parts[0]].filter(Boolean).join(' ');
+          }
+          return '';
+        };
+        const name = getName(text);
+        if (!name) return;
+        const telMatch = text.match(/^TEL[^:]*:(.+)$/im);
+        const emailMatch = text.match(/^EMAIL[^:]*:(.+)$/im);
+        const colorIdx = name.charCodeAt(0) % AVATAR_COLORS.length;
+        await addMutation.mutateAsync({
+          name,
+          phone: telMatch?.[1]?.trim() || null,
+          email: emailMatch?.[1]?.trim() || null,
+          avatarColor: AVATAR_COLORS[colorIdx],
+          tags: '[]',
+        });
+        qc.invalidateQueries({ queryKey: ['/api/friends'] });
+        qc.invalidateQueries({ queryKey: ['/api/stats'] });
+        toast({ title: `${name} added to your orbit!` });
+      } catch {}
+    }
+    checkPendingShare();
+  }, []);
 
   const { data: friends = [], isLoading } = useQuery<FriendWithLast[]>({
     queryKey: ['/api/friends'],
