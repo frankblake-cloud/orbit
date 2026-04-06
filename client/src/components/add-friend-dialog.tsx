@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { BookUser, Loader2, Smartphone } from 'lucide-react';
+import { BookUser, Loader2, Upload } from 'lucide-react';
 import { CategorySelector } from '@/components/category-selector';
 import type { FriendCategory } from '@shared/schema';
 
@@ -40,6 +40,7 @@ export function AddFriendDialog({ open, onOpenChange }: Props) {
   const { toast } = useToast();
   const qc = useQueryClient();
   const [importing, setImporting] = useState(false);
+  const [vcfImporting, setVcfImporting] = useState(false);
 
   const schema = insertFriendSchema.extend({
     name: insertFriendSchema.shape.name.min(1, 'Name is required'),
@@ -104,6 +105,38 @@ export function AddFriendDialog({ open, onOpenChange }: Props) {
     }
   }
 
+  async function importFromVcf(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    setVcfImporting(true);
+    try {
+      const text = await file.text();
+      const getName = (block: string) => {
+        const fn = block.match(/^FN[^:]*:(.+)$/im)?.[1]?.trim();
+        if (fn) return fn;
+        const n = block.match(/^N[^:]*:(.+)$/im)?.[1]?.trim();
+        if (n) {
+          const parts = n.split(';').map((p: string) => p.trim()).filter(Boolean);
+          return [parts[1], parts[0]].filter(Boolean).join(' ');
+        }
+        return '';
+      };
+      const telMatch = text.match(/^TEL[^:]*:(.+)$/im);
+      const emailMatch = text.match(/^EMAIL[^:]*:(.+)$/im);
+      const name = getName(text);
+      if (!name) { toast({ title: 'No name found in file', variant: 'destructive' }); return; }
+      form.setValue('name', name, { shouldValidate: true });
+      if (telMatch?.[1]) form.setValue('phone', telMatch[1].trim());
+      if (emailMatch?.[1]) form.setValue('email', emailMatch[1].trim());
+      toast({ title: `Imported ${name} — fill in the rest!` });
+    } catch {
+      toast({ title: 'Could not read file', variant: 'destructive' });
+    } finally {
+      setVcfImporting(false);
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
@@ -111,32 +144,32 @@ export function AddFriendDialog({ open, onOpenChange }: Props) {
           <DialogTitle className="font-display text-xl">Add a friend</DialogTitle>
         </DialogHeader>
 
-        {/* Contact Picker */}
-        {contactPickerSupported ? (
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={importFromContacts}
-            disabled={importing}
-            data-testid="button-import-contact"
-          >
-            {importing ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <BookUser className="w-4 h-4 mr-2" />
-            )}
-            {importing ? 'Opening contacts...' : 'Import from Contacts'}
-          </Button>
-        ) : (
-          <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/60 text-muted-foreground text-xs">
-            <Smartphone className="w-4 h-4 mt-0.5 flex-shrink-0" />
-            <span>
-              Open Orbit on your phone to import contacts directly from your address book.
-              Works on iOS Safari and Android Chrome.
-            </span>
-          </div>
-        )}
+        {/* Import buttons */}
+        <div className="flex flex-col gap-2">
+          {/* vCard — works everywhere */}
+          <label className="w-full">
+            <input type="file" accept=".vcf,text/vcard" className="hidden" onChange={importFromVcf} disabled={vcfImporting} />
+            <Button type="button" variant="outline" className="w-full" asChild disabled={vcfImporting}>
+              <span className="cursor-pointer">
+                {vcfImporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+                {vcfImporting ? 'Importing...' : 'Import from Contacts (.vcf)'}
+              </span>
+            </Button>
+          </label>
+          {/* Native picker — Android Chrome only */}
+          {contactPickerSupported && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={importFromContacts}
+              disabled={importing}
+            >
+              {importing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <BookUser className="w-4 h-4 mr-2" />}
+              {importing ? 'Opening contacts...' : 'Pick from Contacts'}
+            </Button>
+          )}
+        </div>
 
         <div className="flex items-center gap-3">
           <Separator className="flex-1" />
