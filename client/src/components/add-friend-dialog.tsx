@@ -24,10 +24,12 @@ const AVATAR_COLORS = [
 ];
 
 // Detect Contact Picker API support
+// Note: 'ContactsManager' is NOT exposed as a global on iOS Safari,
+// so we only check navigator.contacts exists and has a select method.
 const contactPickerSupported =
   typeof navigator !== 'undefined' &&
   'contacts' in navigator &&
-  'ContactsManager' in window;
+  typeof (navigator as any).contacts?.select === 'function';
 
 interface Props {
   open: boolean;
