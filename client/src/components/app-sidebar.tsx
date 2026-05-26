@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Plus } from 'lucide-react';
+import { LayoutDashboard, Users, Plus, CheckSquare } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import {
   Sidebar,
@@ -19,6 +19,7 @@ import { AddFriendDialog } from './add-friend-dialog';
 const navItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
   { title: 'Friends', url: '/friends', icon: Users },
+  { title: 'Habits', url: '/habits', icon: CheckSquare },
 ];
 
 export function AppSidebar() {

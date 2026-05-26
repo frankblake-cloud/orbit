@@ -76,3 +76,28 @@ export const settings = sqliteTable('settings', {
   key: text('key').primaryKey(),
   value: text('value').notNull(),
 });
+
+// ── Habits ────────────────────────────────────────────────────────────────────
+export const habits = sqliteTable('habits', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  emoji: text('emoji').default('✅'),
+  color: text('color').default('#7c5cbf'),
+  createdAt: integer('created_at').default(sql`(unixepoch())`),
+});
+
+export const insertHabitSchema = createInsertSchema(habits).omit({ id: true, createdAt: true });
+export type InsertHabit = z.infer<typeof insertHabitSchema>;
+export type Habit = typeof habits.$inferSelect;
+
+// ── Habit Completions ─────────────────────────────────────────────────────────
+export const habitCompletions = sqliteTable('habit_completions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  habitId: integer('habit_id').notNull(),
+  date: text('date').notNull(), // YYYY-MM-DD
+  createdAt: integer('created_at').default(sql`(unixepoch())`),
+});
+
+export const insertHabitCompletionSchema = createInsertSchema(habitCompletions).omit({ id: true, createdAt: true });
+export type InsertHabitCompletion = z.infer<typeof insertHabitCompletionSchema>;
+export type HabitCompletion = typeof habitCompletions.$inferSelect;

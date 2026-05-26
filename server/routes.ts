@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import { storage } from './storage';
 import {
   insertFriendSchema, insertInteractionSchema, insertReminderSchema,
+  insertHabitSchema,
   DEFAULT_CATEGORY_RULES, FriendCategory, CATEGORY_LABELS,
 } from '@shared/schema';
 
@@ -199,7 +200,72 @@ function calcBadges(data: {
   ];
 }
 
+function calcHabitStreak(completionDates: string[], today: string): number {
+  if (completionDates.length === 0) return 0;
+  const sorted = [...completionDates].sort().reverse();
+  const yesterday = new Date(today + 'T00:00:00Z');
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+  const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+  if (sorted[0] !== today && sorted[0] !== yesterdayStr) return 0;
+
+  let streak = 0;
+  const check = new Date((sorted[0] === today ? today : yesterdayStr) + 'T00:00:00Z');
+  const dateSet = new Set(completionDates);
+  while (dateSet.has(check.toISOString().split('T')[0])) {
+    streak++;
+    check.setUTCDate(check.getUTCDate() - 1);
+  }
+  return streak;
+}
+
 export function registerRoutes(httpServer: ReturnType<typeof createServer>, app: Express) {
+  // ── Habits ────────────────────────────────────────────────────────────────
+  app.get('/api/habits', (_req, res) => {
+    const habits = storage.getHabits();
+    const today = new Date().toISOString().split('T')[0];
+    const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    const enriched = habits.map((h) => {
+      const completions = storage.getHabitCompletions(h.id, since);
+      const dates = completions.map((c) => c.date);
+      const dateSet = new Set(dates);
+
+      const history: Array<{ date: string; completed: boolean }> = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        history.push({ date: d, completed: dateSet.has(d) });
+      }
+
+      return {
+        ...h,
+        completedToday: dateSet.has(today),
+        streak: calcHabitStreak(dates, today),
+        history,
+      };
+    });
+
+    res.json(enriched);
+  });
+
+  app.post('/api/habits', (req, res) => {
+    const parsed = insertHabitSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ message: parsed.error.message });
+    res.status(201).json(storage.createHabit(parsed.data));
+  });
+
+  app.delete('/api/habits/:id', (req, res) => {
+    storage.deleteHabit(parseInt(req.params.id));
+    res.status(204).send();
+  });
+
+  app.post('/api/habits/:id/toggle', (req, res) => {
+    const id = parseInt(req.params.id);
+    if (!storage.getHabit(id)) return res.status(404).json({ message: 'Habit not found' });
+    const date = req.body.date ?? new Date().toISOString().split('T')[0];
+    res.json(storage.toggleHabitCompletion(id, date));
+  });
+
   // ── Friends ──────────────────────────────────────────────────────────────
   app.get('/api/friends', (_req, res) => {
     const friends = storage.getFriends();

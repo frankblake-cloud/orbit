@@ -6,6 +6,7 @@ import { eq, desc } from 'drizzle-orm';
 import {
   Friend, InsertFriend, Interaction, InsertInteraction,
   Reminder, InsertReminder, DEFAULT_CATEGORY_RULES, FriendCategory,
+  Habit, InsertHabit, HabitCompletion,
 } from '@shared/schema';
 
 const sqlite: Database = new BetterSqlite3('orbit.db');
@@ -51,6 +52,22 @@ sqlite.exec(`
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS habits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    emoji TEXT DEFAULT '✅',
+    color TEXT DEFAULT '#7c5cbf',
+    created_at INTEGER DEFAULT (unixepoch())
+  );
+
+  CREATE TABLE IF NOT EXISTS habit_completions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    habit_id INTEGER NOT NULL,
+    date TEXT NOT NULL,
+    created_at INTEGER DEFAULT (unixepoch()),
+    UNIQUE(habit_id, date)
+  );
 `);
 
 // Migrate: add category column if it doesn't exist
@@ -61,6 +78,14 @@ try {
 }
 
 export interface IStorage {
+  // Habits
+  getHabits(): Habit[];
+  getHabit(id: number): Habit | undefined;
+  createHabit(data: InsertHabit): Habit;
+  deleteHabit(id: number): void;
+  toggleHabitCompletion(habitId: number, date: string): { completed: boolean };
+  getHabitCompletions(habitId: number, since: string): HabitCompletion[];
+
   // Friends
   getFriends(): Friend[];
   getFriend(id: number): Friend | undefined;
@@ -87,6 +112,44 @@ export interface IStorage {
 }
 
 class SqliteStorage implements IStorage {
+  // ── Habits ─────────────────────────────────────────────────────────────────
+  getHabits(): Habit[] {
+    return db.select().from(schema.habits).orderBy(schema.habits.createdAt).all();
+  }
+
+  getHabit(id: number): Habit | undefined {
+    return db.select().from(schema.habits).where(eq(schema.habits.id, id)).get();
+  }
+
+  createHabit(data: InsertHabit): Habit {
+    return db.insert(schema.habits).values(data).returning().get();
+  }
+
+  deleteHabit(id: number): void {
+    db.delete(schema.habitCompletions).where(eq(schema.habitCompletions.habitId, id)).run();
+    db.delete(schema.habits).where(eq(schema.habits.id, id)).run();
+  }
+
+  toggleHabitCompletion(habitId: number, date: string): { completed: boolean } {
+    const existing = db.select().from(schema.habitCompletions)
+      .where(eq(schema.habitCompletions.habitId, habitId))
+      .all()
+      .find((c) => c.date === date);
+    if (existing) {
+      db.delete(schema.habitCompletions).where(eq(schema.habitCompletions.id, existing.id)).run();
+      return { completed: false };
+    }
+    db.insert(schema.habitCompletions).values({ habitId, date }).run();
+    return { completed: true };
+  }
+
+  getHabitCompletions(habitId: number, since: string): HabitCompletion[] {
+    return db.select().from(schema.habitCompletions)
+      .where(eq(schema.habitCompletions.habitId, habitId))
+      .all()
+      .filter((c) => c.date >= since);
+  }
+
   // ── Friends ────────────────────────────────────────────────────────────────
   getFriends(): Friend[] {
     return db.select().from(schema.friends).orderBy(desc(schema.friends.createdAt)).all();

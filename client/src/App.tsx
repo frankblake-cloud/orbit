@@ -10,6 +10,7 @@ import { AppHeader } from '@/components/app-header';
 import Dashboard from '@/pages/dashboard';
 import FriendsList from '@/pages/friends-list';
 import FriendDetail from '@/pages/friend-detail';
+import Habits from '@/pages/habits';
 import NotFound from '@/pages/not-found';
 import { ThemeProvider } from '@/components/theme-provider';
 
@@ -19,6 +20,7 @@ function AppRouter() {
       <Route path="/" component={Dashboard} />
       <Route path="/friends" component={FriendsList} />
       <Route path="/friends/:id" component={FriendDetail} />
+      <Route path="/habits" component={Habits} />
       <Route component={NotFound} />
     </Switch>
   );
