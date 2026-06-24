@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fishing for the Mission 22 – On The Water Magazine Ad</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a2e;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 32px 16px;
+      font-family: 'Open Sans', sans-serif;
+    }
+
+    /* ── PAGE ── */
+    .page {
+      width: 8.5in;
+      height: 11in;
+      position: relative;
+      overflow: hidden;
+      background: #0a1628;
+      box-shadow: 0 24px 80px rgba(0,0,0,.7);
+    }
+
+    /* ── HERO IMAGE LAYER ── */
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(
+          to bottom,
+          rgba(5, 20, 50, 0.55) 0%,
+          rgba(5, 20, 50, 0.20) 35%,
+          rgba(5, 20, 50, 0.65) 70%,
+          rgba(5, 20, 50, 0.97) 100%
+        ),
+        url('https://images.unsplash.com/photo-1559827291-72ee739d0d9a?w=1400&q=80') center/cover no-repeat;
+    }
+
+    /* ── TOP BANNER ── */
+    .top-banner {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 40px;
+      background: linear-gradient(90deg, #c8102e 0%, #a00d26 100%);
+      z-index: 10;
+    }
+    .top-banner .otw-logo {
+      font-family: 'Oswald', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      opacity: .9;
+    }
+    .top-banner .partner-tag {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      color: #ffd700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* ── MAIN CONTENT ── */
+    .content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 5;
+      padding: 0 52px;
+    }
+
+    /* ── HEADER BLOCK ── */
+    .header-block {
+      margin-top: 70px;
+      text-align: center;
+    }
+    .stat-pill {
+      display: inline-block;
+      background: #c8102e;
+      color: #fff;
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 5px 18px;
+      border-radius: 2px;
+      margin-bottom: 16px;
+    }
+    .headline {
+      font-family: 'Oswald', sans-serif;
+      font-size: 72px;
+      font-weight: 700;
+      line-height: .95;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 4px 24px rgba(0,0,0,.7);
+    }
+    .headline span {
+      color: #ffd700;
+    }
+    .subheadline {
+      font-family: 'Oswald', sans-serif;
+      font-size: 20px;
+      font-weight: 400;
+      color: #b8d4f0;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      margin-top: 12px;
+    }
+
+    /* ── STAT BAR ── */
+    .stat-bar {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      margin-top: 26px;
+    }
+    .stat-item {
+      text-align: center;
+      padding: 14px 36px;
+      border-right: 1px solid rgba(255,255,255,.2);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-num {
+      font-family: 'Oswald', sans-serif;
+      font-size: 38px;
+      font-weight: 700;
+      color: #ffd700;
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #9ab8d8;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* ── DIVIDER ── */
+    .gold-rule {
+      width: 120px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #ffd700, transparent);
+      margin: 20px auto;
+    }
+
+    /* ── PHOTO STRIP ── */
+    .photo-strip {
+      display: flex;
+      gap: 10px;
+      margin-top: 0px;
+      height: 155px;
+    }
+    .photo-card {
+      flex: 1;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+      border: 2px solid rgba(255,215,0,.3);
+    }
+    .photo-card img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: saturate(0.9) brightness(0.88);
+    }
+    .photo-label {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(5,20,50,.85));
+      color: #ffd700;
+      font-family: 'Oswald', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 6px 8px 6px;
+      text-align: center;
+    }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials {
+      display: flex;
+      gap: 16px;
+      margin-top: 18px;
+    }
+    .testimonial {
+      flex: 1;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,215,0,.2);
+      border-top: 3px solid #ffd700;
+      border-radius: 4px;
+      padding: 16px 18px;
+      position: relative;
+    }
+    .quote-mark {
+      font-family: 'Merriweather', serif;
+      font-size: 48px;
+      line-height: .7;
+      color: rgba(255,215,0,.25);
+      position: absolute;
+      top: 10px;
+      left: 12px;
+    }
+    .quote-text {
+      font-family: 'Merriweather', serif;
+      font-size: 11.5px;
+      font-style: italic;
+      color: #d8e8f8;
+      line-height: 1.65;
+      padding-top: 8px;
+      position: relative;
+      z-index: 1;
+    }
+    .quote-attr {
+      font-family: 'Oswald', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      color: #ffd700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 10px;
+    }
+    .quote-branch {
+      font-size: 9.5px;
+      color: #7a9fc0;
+      font-family: 'Open Sans', sans-serif;
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: .5px;
+    }
+
+    /* ── BOTTOM CTA ── */
+    .bottom-cta {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      margin-top: 18px;
+      padding: 20px 24px;
+      background: linear-gradient(135deg, rgba(200,16,46,.18) 0%, rgba(10,22,40,.8) 100%);
+      border: 1px solid rgba(200,16,46,.45);
+      border-radius: 6px;
+    }
+
+    /* QR block */
+    .qr-block {
+      flex-shrink: 0;
+      text-align: center;
+    }
+    .qr-frame {
+      background: #fff;
+      padding: 8px;
+      border-radius: 4px;
+      display: inline-block;
+      box-shadow: 0 0 0 3px #ffd700, 0 6px 20px rgba(0,0,0,.4);
+    }
+    .qr-frame img {
+      display: block;
+      width: 100px;
+      height: 100px;
+    }
+    .qr-caption {
+      font-family: 'Oswald', sans-serif;
+      font-size: 9.5px;
+      font-weight: 600;
+      color: #ffd700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+    .qr-url {
+      font-size: 8.5px;
+      color: #7a9fc0;
+      margin-top: 2px;
+    }
+
+    /* CTA text */
+    .cta-text {
+      flex: 1;
+    }
+    .cta-headline {
+      font-family: 'Oswald', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffffff;
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+    .cta-headline span { color: #ffd700; }
+    .cta-body {
+      font-size: 11.5px;
+      color: #9ab8d8;
+      line-height: 1.6;
+      margin-top: 8px;
+    }
+    .cta-programs {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .prog-chip {
+      background: rgba(255,215,0,.12);
+      border: 1px solid rgba(255,215,0,.35);
+      border-radius: 2px;
+      padding: 4px 10px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 9.5px;
+      font-weight: 600;
+      color: #ffd700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    /* Logo block */
+    .logo-block {
+      flex-shrink: 0;
+      text-align: center;
+    }
+    .org-logo-text {
+      font-family: 'Oswald', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .org-logo-num {
+      font-size: 48px;
+      font-weight: 700;
+      color: #c8102e;
+      line-height: .9;
+    }
+    .org-501c3 {
+      font-size: 8.5px;
+      color: #6a8faa;
+      letter-spacing: 1.5px;
+      margin-top: 6px;
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: #0d1e38;
+      border-top: 2px solid #c8102e;
+      padding: 10px 52px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+    .footer-left {
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      color: #5a7a9a;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .footer-center {
+      font-family: 'Oswald', sans-serif;
+      font-size: 12px;
+      color: #fff;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+    .footer-center span { color: #c8102e; }
+    .footer-right {
+      font-size: 10px;
+      color: #5a7a9a;
+    }
+    .crisis-line {
+      font-size: 9px;
+      color: #c8102e;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-align: right;
+    }
+
+    /* ── ANCHOR ── */
+    .anchor-badge {
+      position: absolute;
+      top: 60px;
+      right: 52px;
+      font-size: 38px;
+      opacity: .12;
+      filter: invert(1);
+      z-index: 3;
+    }
+
+    @media print {
+      body { background: none; padding: 0; }
+      .page { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Hero background -->
+  <div class="hero-bg"></div>
+
+  <!-- Anchor watermark -->
+  <div class="anchor-badge">⚓</div>
+
+  <!-- Top banner -->
+  <div class="top-banner">
+    <div class="otw-logo">On The Water &nbsp;·&nbsp; Media Partner</div>
+    <div class="partner-tag">★ Official Charity Partner ★</div>
+  </div>
+
+  <!-- Main content -->
+  <div class="content">
+
+    <!-- Header -->
+    <div class="header-block">
+      <div class="stat-pill">22 Veterans Lost to Suicide Every Day</div>
+      <div class="headline">Fishing<br><span>for the</span><br>Mission 22</div>
+      <div class="subheadline">Healing Veterans Through the Water</div>
+
+      <!-- Stat bar -->
+      <div class="stat-bar">
+        <div class="stat-item">
+          <div class="stat-num">22</div>
+          <div class="stat-label">Veterans / Day</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">$75K+</div>
+          <div class="stat-label">Raised Last Tournament</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">100s</div>
+          <div class="stat-label">Free Trips / Year</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">501(c)3</div>
+          <div class="stat-label">Tax Deductible</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gold-rule"></div>
+
+    <!-- Photo strip -->
+    <div class="photo-strip">
+      <div class="photo-card">
+        <img src="https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=600&q=75" alt="Veteran fishing offshore" />
+        <div class="photo-label">Common Ground 22 Connect</div>
+      </div>
+      <div class="photo-card">
+        <img src="https://images.unsplash.com/photo-1559827291-72ee739d0d9a?w=600&q=75" alt="Fishing at sunrise" />
+        <div class="photo-label">Therapeutic Offshore Charters</div>
+      </div>
+      <div class="photo-card">
+        <img src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=75" alt="Veteran with fish" />
+        <div class="photo-label">Operation Tackle 22</div>
+      </div>
+      <div class="photo-card">
+        <img src="https://images.unsplash.com/photo-1463122370183-84a6cf8ef5d7?w=600&q=75" alt="Veterans at tournament" />
+        <div class="photo-label">Annual Tournament Series</div>
+      </div>
+    </div>
+
+    <!-- Testimonials -->
+    <div class="testimonials">
+      <div class="testimonial">
+        <div class="quote-mark">"</div>
+        <div class="quote-text">
+          "Being on that boat changed something in me. For the first time since I got home, I felt calm — truly calm. Fishing for the Mission 22 gave me back something the war took away."
+        </div>
+        <div class="quote-attr">
+          Marcus T.
+          <span class="quote-branch"> · U.S. Army, OIF Veteran</span>
+        </div>
+      </div>
+      <div class="testimonial">
+        <div class="quote-mark">"</div>
+        <div class="quote-text">
+          "I wasn't sure I had a reason to keep going. Harold and his team showed up. A fishing trip turned into a lifeline — now I'm helping lead Operation Tackle 22 trips myself."
+        </div>
+        <div class="quote-attr">
+          James R.
+          <span class="quote-branch"> · U.S. Marine Corps, Combat Veteran</span>
+        </div>
+      </div>
+      <div class="testimonial">
+        <div class="quote-mark">"</div>
+        <div class="quote-text">
+          "The water heals. It's as simple as that. These guys aren't just running fishing trips — they're running a brotherhood that saves lives every single season."
+        </div>
+        <div class="quote-attr">
+          — Harold F. Skelton
+          <span class="quote-branch"> · Founder · Iraq War Veteran · Survivor</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom CTA bar -->
+    <div class="bottom-cta">
+
+      <!-- Logo block -->
+      <div class="logo-block">
+        <div class="org-logo-text">Mission</div>
+        <div class="org-logo-num">22</div>
+        <div class="org-logo-text" style="font-size:12px; color:#9ab8d8;">Fishing for the</div>
+        <div class="org-501c3">501(c)(3) · EIN Available Upon Request</div>
+      </div>
+
+      <!-- CTA text -->
+      <div class="cta-text">
+        <div class="cta-headline">Your Cast <span>Saves Lives.</span></div>
+        <div class="cta-body">
+          Based in Buzzards Bay, MA, Fishing for the Mission 22 provides free offshore fishing charters, behavioral health services, peer support, VA benefit assistance, and hardship grants — at zero cost to veterans and first responders. Every dollar you donate goes directly to expanding these life-saving programs.
+        </div>
+        <div class="cta-programs">
+          <div class="prog-chip">Operation Tackle 22</div>
+          <div class="prog-chip">Common Ground 22 Connect</div>
+          <div class="prog-chip">Peer Support</div>
+          <div class="prog-chip">VA Benefits Help</div>
+        </div>
+      </div>
+
+      <!-- QR donate block -->
+      <div class="qr-block">
+        <div class="qr-frame">
+          <img
+            src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https%3A%2F%2Ffishingforthemission22.org%2Fdonate&color=0a1628&bgcolor=ffffff"
+            alt="Donate QR Code"
+          />
+        </div>
+        <div class="qr-caption">Scan to Donate</div>
+        <div class="qr-url">fishingforthemission22.org</div>
+      </div>
+
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-left">Buzzards Bay, Massachusetts</div>
+    <div class="footer-center">Fishing for the <span>Mission 22</span></div>
+    <div>
+      <div class="footer-right">fishingforthemission22.org</div>
+      <div class="crisis-line">Veterans Crisis Line: 988 Press 1</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
